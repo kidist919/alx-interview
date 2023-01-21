@@ -1,45 +1,45 @@
 #!/usr/bin/python3
-
-"""Script that reads stdin line by line and computes metrics"""
+"""Script to get stats from a request"""
 
 import sys
 
-
-def printsts(dic, size):
-    """ WWPrints information """
-    print("File size: {:d}".format(size))
-    for i in sorted(dic.keys()):
-        if dic[i] != 0:
-            print("{}: {:d}".format(i, dic[i]))
-
-
-sts = {"200": 0, "301": 0, "400": 0, "401": 0, "403": 0,
-       "404": 0, "405": 0, "500": 0}
-
+codes = {}
+status_codes = ['200', '301', '400', '401', '403', '404', '405', '500']
 count = 0
 size = 0
 
 try:
-    for line in sys.stdin:
-        if count != 0 and count % 10 == 0:
-            printsts(sts, size)
+    for ln in sys.stdin:
+        if count == 10:
+            print("File size: {}".format(size))
+            for key in sorted(codes):
+                print("{}: {}".format(key, codes[key]))
+            count = 1
+        else:
+            count += 1
 
-        stlist = line.split()
-        count += 1
+        ln = ln.split()
 
         try:
-            size += int(stlist[-1])
-        except:
+            size = size + int(ln[-1])
+        except (IndexError, ValueError):
             pass
 
         try:
-            if stlist[-2] in sts:
-                sts[stlist[-2]] += 1
-        except:
+            if ln[-2] in status_codes:
+                if codes.get(ln[-2], -1) == -1:
+                    codes[ln[-2]] = 1
+                else:
+                    codes[ln[-2]] += 1
+        except IndexError:
             pass
-    printsts(sts, size)
 
+    print("File size: {}".format(size))
+    for key in sorted(codes):
+        print("{}: {}".format(key, codes[key]))
 
 except KeyboardInterrupt:
-    printsts(sts, size)
+    print("File size: {}".format(size))
+    for key in sorted(codes):
+        print("{}: {}".format(key, codes[key]))
     raise
